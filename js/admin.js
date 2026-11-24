@@ -20,6 +20,37 @@ function randomSevenDigitContract(uf = "BR") {
   return `${num}${(uf || "BR").toUpperCase()}`;
 }
 
+async function uploadImageToBidBucket(file, folder) {
+  if (!file) return null;
+
+  const maxBytes = 3 * 1024 * 1024; // 3 MB
+  if (file.size > maxBytes) {
+    throw new Error("A imagem deve ter no máximo 3 MB.");
+  }
+
+  const ext = (file.name.split(".").pop() || "png").toLowerCase().replace(/[^a-z0-9]/g, "");
+  const safeName = `${Date.now()}-${Math.random().toString(36).slice(2, 8)}.${ext}`;
+  const filePath = `${folder}/${safeName}`;
+
+  const { error: uploadError } = await supabaseClient.storage
+    .from("bid-imagens")
+    .upload(filePath, file, {
+      cacheControl: "3600",
+      upsert: false,
+      contentType: file.type || undefined
+    });
+
+  if (uploadError) {
+    throw new Error("Falha ao enviar imagem: " + uploadError.message);
+  }
+
+  const { data } = supabaseClient.storage
+    .from("bid-imagens")
+    .getPublicUrl(filePath);
+
+  return data?.publicUrl || null;
+}
+
 async function generateUniqueBidRegistration() {
   if (!supabaseClient) return randomSixDigitCode();
 
@@ -182,16 +213,23 @@ document.addEventListener("DOMContentLoaded", () => {
     const name = document.getElementById("clubName").value.trim();
     const short_name = document.getElementById("clubShort").value.trim().toUpperCase();
     const uf = document.getElementById("clubUf").value;
-    const logo_url = document.getElementById("clubLogoUrl").value.trim() || null;
+    const logoFile = document.getElementById("clubLogoFile")?.files?.[0] || null;
 
     if (!uf) return setFeedback("Selecione o estado (UF) do clube.", true);
 
-    const { error } = await supabaseClient.from("clubs").insert({ name, short_name, uf, logo_url });
-    if (error) return setFeedback("Erro ao cadastrar clube: " + error.message, true);
+    try {
+      setFeedback("Enviando escudo e salvando clube...");
+      const logo_url = await uploadImageToBidBucket(logoFile, "escudos");
 
-    e.target.reset();
-    setFeedback("Clube cadastrado com sucesso!");
-    await refreshAdminSelects();
+      const { error } = await supabaseClient.from("clubs").insert({ name, short_name, uf, logo_url });
+      if (error) return setFeedback("Erro ao cadastrar clube: " + error.message, true);
+
+      e.target.reset();
+      setFeedback("Clube cadastrado e escudo salvo com sucesso!");
+      await refreshAdminSelects();
+    } catch (err) {
+      setFeedback(err.message || "Erro ao enviar escudo.", true);
+    }
   });
 
   document.getElementById("playerForm")?.addEventListener("submit", async (e) => {
@@ -200,24 +238,31 @@ document.addEventListener("DOMContentLoaded", () => {
     const nickname = document.getElementById("playerNickname").value.trim() || null;
     const position = document.getElementById("playerPosition").value;
     const birth_date = document.getElementById("playerBirthDate").value || null;
-    const photo_url = document.getElementById("playerPhotoUrl").value.trim() || null;
+    const photoFile = document.getElementById("playerPhotoFile")?.files?.[0] || null;
     const current_club_id = document.getElementById("playerClubSelect").value || null;
 
     if (!position) return setFeedback("Selecione a posição do atleta.", true);
 
-    const { error } = await supabaseClient.from("players").insert({
-      full_name,
-      nickname,
-      position,
-      birth_date,
-      photo_url,
-      current_club_id
-    });
-    if (error) return setFeedback("Erro ao cadastrar atleta: " + error.message, true);
+    try {
+      setFeedback("Enviando foto e salvando atleta...");
+      const photo_url = await uploadImageToBidBucket(photoFile, "atletas");
 
-    e.target.reset();
-    setFeedback("Atleta cadastrado com sucesso!");
-    await refreshAdminSelects();
+      const { error } = await supabaseClient.from("players").insert({
+        full_name,
+        nickname,
+        position,
+        birth_date,
+        photo_url,
+        current_club_id
+      });
+      if (error) return setFeedback("Erro ao cadastrar atleta: " + error.message, true);
+
+      e.target.reset();
+      setFeedback("Atleta cadastrado e foto salva com sucesso!");
+      await refreshAdminSelects();
+    } catch (err) {
+      setFeedback(err.message || "Erro ao enviar foto.", true);
+    }
   });
 
   document.getElementById("transferForm")?.addEventListener("submit", async (e) => {
