@@ -60,15 +60,44 @@
           <form id="clubForm">
             <div class="form-group">
               <label for="clubName">Nome Oficial do Clube</label>
-              <input id="clubName" class="form-control" type="text" required placeholder="Ex: Sport Club Corinthians Virtual - SP" />
+              <input id="clubName" class="form-control" type="text" required placeholder="Ex: Sport Club Corinthians Virtual" />
             </div>
             <div class="form-group">
               <label for="clubShort">Sigla (3 a 4 letras)</label>
               <input id="clubShort" class="form-control" type="text" maxlength="4" required placeholder="COR" />
             </div>
             <div class="form-group">
-              <label for="clubUf">UF (Estado)</label>
-              <input id="clubUf" class="form-control" type="text" maxlength="2" required placeholder="SP" />
+              <label for="clubUf">Estado (UF)</label>
+              <select id="clubUf" class="form-control" required>
+                <option value="">-- Selecione o Estado --</option>
+                <option value="AC">AC — Acre</option>
+                <option value="AL">AL — Alagoas</option>
+                <option value="AP">AP — Amapá</option>
+                <option value="AM">AM — Amazonas</option>
+                <option value="BA">BA — Bahia</option>
+                <option value="CE">CE — Ceará</option>
+                <option value="DF">DF — Distrito Federal</option>
+                <option value="ES">ES — Espírito Santo</option>
+                <option value="GO">GO — Goiás</option>
+                <option value="MA">MA — Maranhão</option>
+                <option value="MT">MT — Mato Grosso</option>
+                <option value="MS">MS — Mato Grosso do Sul</option>
+                <option value="MG">MG — Minas Gerais</option>
+                <option value="PA">PA — Pará</option>
+                <option value="PB">PB — Paraíba</option>
+                <option value="PR">PR — Paraná</option>
+                <option value="PE">PE — Pernambuco</option>
+                <option value="PI">PI — Piauí</option>
+                <option value="RJ">RJ — Rio de Janeiro</option>
+                <option value="RN">RN — Rio Grande do Norte</option>
+                <option value="RS">RS — Rio Grande do Sul</option>
+                <option value="RO">RO — Rondônia</option>
+                <option value="RR">RR — Roraima</option>
+                <option value="SC">SC — Santa Catarina</option>
+                <option value="SP">SP — São Paulo</option>
+                <option value="SE">SE — Sergipe</option>
+                <option value="TO">TO — Tocantins</option>
+              </select>
             </div>
             <div class="form-group">
               <label for="clubLogoUrl">URL do Escudo (PNG/JPG)</label>
@@ -92,12 +121,13 @@
             <div class="form-group">
               <label for="playerPosition">Posição</label>
               <select id="playerPosition" class="form-control" required>
-                <option value="GOL">GOL</option>
-                <option value="ZAG">ZAG</option>
-                <option value="LAT">LAT</option>
-                <option value="VOL">VOL</option>
-                <option value="MEI">MEI</option>
-                <option value="ATA">ATA</option>
+                <option value="">-- Selecione a Posição --</option>
+                <option value="GOL">GOL — Goleiro</option>
+                <option value="ZAG">ZAG — Zagueiro</option>
+                <option value="LAT">LAT — Lateral</option>
+                <option value="VOL">VOL — Volante</option>
+                <option value="MEI">MEI — Meia</option>
+                <option value="ATA">ATA — Atacante</option>
               </select>
             </div>
             <div class="form-group">
@@ -121,14 +151,6 @@
         <h2>3. Publicar Registro no BID</h2>
         <form id="transferForm" class="admin-grid" style="margin-bottom:0;">
           <div class="form-group">
-            <label for="protocolCode">Nº de Contrato</label>
-            <input id="protocolCode" class="form-control" type="text" required placeholder="Ex: 2947500SP" />
-          </div>
-          <div class="form-group">
-            <label for="bidRegistration">Inscrição (BID)</label>
-            <input id="bidRegistration" class="form-control" type="text" placeholder="Ex: 870705" />
-          </div>
-          <div class="form-group">
             <label for="transferPlayerSelect">Atleta</label>
             <select id="transferPlayerSelect" class="form-control" required></select>
           </div>
@@ -141,14 +163,25 @@
             <select id="toClubSelect" class="form-control"></select>
           </div>
           <div class="form-group">
-            <label for="movementType">Tipo (Exibido no crachá)</label>
-            <select id="movementType" class="form-control">
-              <option value="LIBERAR">LIBERAR</option>
-              <option value="TRANSFERENCIA">TRANSFERENCIA</option>
-              <option value="EMPRESTIMO">EMPRESTIMO</option>
-              <option value="RENOVACAO">RENOVACAO</option>
-              <option value="RESCISAO">RESCISAO</option>
+            <label for="movementType">Tipo de Movimentação</label>
+            <select id="movementType" class="form-control" required>
+              <option value="LIBERAR">LIBERAR — Liberação / Rescisão</option>
+              <option value="TRANSFERENCIA">TRANSFERENCIA — Transferência Definitiva</option>
+              <option value="EMPRESTIMO">EMPRESTIMO — Empréstimo</option>
+              <option value="RENOVACAO">RENOVACAO — Renovação de Contrato</option>
+              <option value="RESCISAO">RESCISAO — Rescisão Contratual</option>
             </select>
+          </div>
+          <div class="form-group">
+            <label for="protocolCode">Nº de Contrato</label>
+            <div style="display:flex;gap:8px;">
+              <input id="protocolCode" class="form-control" type="text" required placeholder="Ex: 2947500SP" />
+              <button id="generateContractBtn" class="header-admin-link" type="button" style="white-space:nowrap;">Gerar</button>
+            </div>
+          </div>
+          <div class="form-group">
+            <label for="bidRegistration">Inscrição (BID) — Automático</label>
+            <input id="bidRegistration" class="form-control" type="text" placeholder="Gerado automaticamente" />
           </div>
           <div class="form-group">
             <label for="startDate">Data Início (Opcional)</label>
@@ -156,13 +189,20 @@
           </div>
           <div class="form-group">
             <label for="feeLabel">Observação / Condição</label>
-            <input id="feeLabel" class="form-control" type="text" placeholder="Contrato Profissional / Livre" />
+            <select id="feeLabel" class="form-control">
+              <option value="Contrato Profissional">Contrato Profissional</option>
+              <option value="Livre / Sem custo">Livre / Sem custo</option>
+              <option value="Transferência Definitiva">Transferência Definitiva</option>
+              <option value="Empréstimo até o fim da temporada">Empréstimo até o fim da temporada</option>
+              <option value="Renovação Contratual">Renovação Contratual</option>
+              <option value="Rescisão em comum acordo">Rescisão em comum acordo</option>
+            </select>
           </div>
           <div class="form-group">
-            <label for="transferStatus">Status</label>
+            <label for="transferStatus">Status da Publicação</label>
             <select id="transferStatus" class="form-control">
-              <option value="PUBLICADO">PUBLICADO</option>
-              <option value="PENDENTE">PENDENTE</option>
+              <option value="PUBLICADO">PUBLICADO (Visível no BID)</option>
+              <option value="PENDENTE">PENDENTE (Aguardando validação)</option>
               <option value="CANCELADO">CANCELADO</option>
             </select>
           </div>
