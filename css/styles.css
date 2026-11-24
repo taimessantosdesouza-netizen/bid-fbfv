@@ -21,6 +21,12 @@
   padding: 0;
 }
 
+html,
+body {
+  max-width: 100%;
+  overflow-x: hidden;
+}
+
 body {
   font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
   background-color: var(--bg-page);
@@ -34,6 +40,7 @@ a {
   text-decoration: none;
 }
 
+/* Topbar estilo BID CBF */
 .bid-header {
   background: #ffffff;
   border-bottom: 1px solid #eef0f4;
@@ -148,6 +155,7 @@ a {
   background: rgba(0, 87, 255, 0.06);
 }
 
+/* Tela inicial vazia (Home institucional) */
 .empty-home {
   min-height: calc(100vh - 130px);
   display: flex;
@@ -190,6 +198,7 @@ a {
   color: #ffffff;
 }
 
+/* Container de resultados cinza claro */
 .results-wrapper {
   max-width: 1320px;
   margin: 18px auto 48px;
@@ -243,6 +252,7 @@ a {
   box-shadow: 0 0 0 3px rgba(0, 87, 255, 0.1);
 }
 
+/* Grid de 2 colunas de cartões */
 .bid-cards-grid {
   display: grid;
   grid-template-columns: repeat(2, minmax(0, 1fr));
@@ -258,8 +268,10 @@ a {
   display: flex;
   align-items: center;
   gap: 26px;
+  min-width: 0;
 }
 
+/* Crachá / Moldura esquerda do atleta */
 .athlete-badge-frame {
   width: 166px;
   flex-shrink: 0;
@@ -356,6 +368,7 @@ a {
   letter-spacing: 0.03em;
 }
 
+/* Coluna direita de dados do atleta */
 .athlete-info {
   flex: 1;
   min-width: 0;
@@ -367,6 +380,7 @@ a {
   color: var(--cbf-blue);
   margin-bottom: 10px;
   line-height: 1.25;
+  overflow-wrap: anywhere;
 }
 
 .athlete-meta-list {
@@ -391,6 +405,7 @@ a {
   font-size: 0.84rem;
   color: #5a6270;
   text-transform: uppercase;
+  overflow-wrap: anywhere;
 }
 
 .inline-club-crest {
@@ -436,6 +451,7 @@ a {
   color: #ffffff;
 }
 
+/* Modal de Histórico Completo */
 .modal-backdrop {
   position: fixed;
   inset: 0;
@@ -452,6 +468,8 @@ a {
   border-radius: 14px;
   max-width: 620px;
   width: 100%;
+  max-height: 88vh;
+  overflow-y: auto;
   padding: 24px 28px;
   box-shadow: 0 20px 45px rgba(0, 0, 0, 0.22);
 }
@@ -478,6 +496,7 @@ a {
   border-radius: 50%;
   cursor: pointer;
   font-weight: 700;
+  flex-shrink: 0;
 }
 
 .history-item {
@@ -491,11 +510,14 @@ a {
 .history-item-top {
   display: flex;
   justify-content: space-between;
+  gap: 8px;
+  flex-wrap: wrap;
   font-weight: 700;
   color: var(--cbf-blue);
   margin-bottom: 4px;
 }
 
+/* Estilos do Painel Administrativo */
 .admin-container {
   max-width: 1180px;
   margin: 26px auto 56px;
@@ -534,6 +556,7 @@ a {
   border-radius: 12px;
   padding: 22px;
   box-shadow: var(--shadow-card);
+  min-width: 0;
 }
 
 .admin-card h2 {
@@ -558,6 +581,7 @@ a {
 
 .form-control {
   width: 100%;
+  min-width: 0;
   height: 38px;
   border-radius: 8px;
   border: 1px solid #cfd6e2;
@@ -609,33 +633,131 @@ a {
   border: 1px solid #bfdbfe;
   color: #1e40af;
   font-size: 0.85rem;
+  overflow-wrap: anywhere;
 }
 
 .hidden {
   display: none !important;
 }
 
+/* Responsividade — Tablets e Celulares */
 @media (max-width: 980px) {
   .bid-cards-grid {
     grid-template-columns: 1fr;
   }
 }
 
-@media (max-width: 640px) {
+@media (max-width: 768px) {
   .bid-header {
-    padding: 14px 16px;
+    padding: 12px 14px;
   }
+
+  .bid-header-inner {
+    gap: 12px;
+  }
+
+  .bid-filter-pills {
+    order: 3;
+    flex: 1 1 100%;
+    max-width: 100%;
+    flex-wrap: wrap;
+    justify-content: stretch;
+    gap: 8px;
+  }
+
+  .pill-input {
+    height: 40px;
+    font-size: 0.85rem;
+  }
+
+  .pill-date {
+    flex: 1 1 140px;
+    width: auto;
+  }
+
+  .pill-uf {
+    flex: 0 0 88px;
+    width: auto;
+  }
+
+  .pill-club {
+    flex: 1 1 100%;
+    min-width: 0;
+  }
+
+  .btn-search-circle {
+    width: 100%;
+    height: 40px;
+    border-radius: 999px;
+  }
+
+  .empty-home h1 {
+    font-size: 1.45rem;
+  }
+
   .results-wrapper {
-    padding: 18px 16px;
+    margin: 10px 0 32px;
+    padding: 16px 12px 24px;
     border-radius: 0;
   }
+
+  .results-toolbar {
+    flex-direction: column;
+    align-items: stretch;
+    gap: 12px;
+  }
+
+  .name-search-box {
+    max-width: 100%;
+  }
+
+  .name-search-input {
+    height: 42px;
+    font-size: 0.95rem;
+  }
+
+  .admin-container {
+    margin: 16px auto 40px;
+    padding: 0 12px;
+  }
+
+  .admin-banner {
+    padding: 16px;
+  }
+
+  .admin-banner h1 {
+    font-size: 1.2rem;
+  }
+
+  .admin-grid {
+    grid-template-columns: 1fr;
+    gap: 14px;
+  }
+
+  .admin-card {
+    padding: 16px;
+  }
+}
+
+@media (max-width: 640px) {
   .athlete-card {
     flex-direction: column;
-    align-items: flex-start;
+    align-items: stretch;
+    padding: 18px 16px;
+    gap: 16px;
   }
+
   .athlete-badge-frame {
     width: 100%;
-    max-width: 210px;
+    max-width: 185px;
     margin: 0 auto;
+  }
+
+  .athlete-full-name {
+    font-size: 1.08rem;
+  }
+
+  .modal-box {
+    padding: 18px 16px;
   }
 }
