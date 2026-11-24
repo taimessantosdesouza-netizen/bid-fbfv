@@ -1,0 +1,93 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>BID FBFV — Boletim Informativo Diário</title>
+  <link rel="stylesheet" href="css/styles.css" />
+</head>
+<body>
+  <header class="topbar">
+    <div class="container topbar-inner">
+      <a class="brand" href="index.html">
+        <span class="brand-badge">FBFV</span>
+        <span>Boletim Informativo Diário</span>
+      </a>
+      <div class="nav-actions">
+        <a class="btn" href="admin.html">Painel Admin</a>
+      </div>
+    </div>
+  </header>
+
+  <main class="container">
+    <section class="hero">
+      <h1>Consulta Pública do BID</h1>
+      <p>Acompanhe transferências, empréstimos, renovações e rescisões oficiais da Federação Brasileira de Futebol Virtual.</p>
+
+      <div id="configNotice" class="notice hidden">
+        Modo demonstração ativo: conecte suas credenciais do Supabase em <code>js/config.js</code> para exibir dados reais do banco.
+      </div>
+    </section>
+
+    <section class="stats-grid">
+      <div class="stat-card">
+        <div class="stat-label">Registros Exibidos</div>
+        <div id="statTotal" class="stat-value">0</div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-label">Publicados</div>
+        <div id="statPublished" class="stat-value">0</div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-label">Clubes Envolvidos</div>
+        <div id="statClubs" class="stat-value">0</div>
+      </div>
+    </section>
+
+    <section class="filters-bar">
+      <input id="searchInput" type="search" placeholder="Buscar por protocolo, atleta ou sigla de clube..." />
+      <select id="typeFilter">
+        <option value="">Todos os tipos</option>
+        <option value="TRANSFERENCIA">Transferência</option>
+        <option value="EMPRESTIMO">Empréstimo</option>
+        <option value="RENOVACAO">Renovação</option>
+        <option value="RESCISAO">Rescisão</option>
+      </select>
+      <select id="statusFilter">
+        <option value="">Todos os status</option>
+        <option value="PUBLICADO">Publicado</option>
+        <option value="PENDENTE">Pendente</option>
+        <option value="CANCELADO">Cancelado</option>
+      </select>
+      <button id="clearFiltersBtn" class="btn" type="button">Limpar</button>
+    </section>
+
+    <section class="table-wrap">
+      <table>
+        <thead>
+          <tr>
+            <th>Protocolo</th>
+            <th>Atleta</th>
+            <th>Movimentação</th>
+            <th>Tipo</th>
+            <th>Condição / Valor</th>
+            <th>Data</th>
+            <th>Status</th>
+          </tr>
+        </thead>
+        <tbody id="bidTableBody">
+          <tr><td colspan="7">Carregando registros...</td></tr>
+        </tbody>
+      </table>
+    </section>
+  </main>
+
+  <footer class="footer">
+    <div class="container">BID FBFV — Federação Brasileira de Futebol Virtual</div>
+  </footer>
+
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  <script src="js/config.js"></script>
+  <script src="js/public-bid.js"></script>
+</body>
+</html>

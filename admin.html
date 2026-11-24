@@ -1,0 +1,151 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Administração — BID FBFV</title>
+  <link rel="stylesheet" href="css/styles.css" />
+</head>
+<body>
+  <header class="topbar">
+    <div class="container topbar-inner">
+      <a class="brand" href="index.html">
+        <span class="brand-badge">FBFV</span>
+        <span>Painel Administrativo</span>
+      </a>
+      <div class="nav-actions">
+        <a class="btn" href="index.html">Ver BID Público</a>
+        <button id="logoutBtn" class="btn btn-danger" type="button">Sair</button>
+      </div>
+    </div>
+  </header>
+
+  <main class="container">
+    <section class="hero">
+      <h1>Gestão do BID</h1>
+      <p>Área restrita para cadastro de clubes, atletas e publicação de movimentações no banco Supabase.</p>
+      <p id="adminFeedback" class="notice hidden"></p>
+    </section>
+
+    <section id="loginPanel" class="card" style="max-width:440px;margin:0 auto 28px;">
+      <h2>Entrar como Administrador</h2>
+      <form id="loginForm">
+        <div class="form-group">
+          <label for="loginEmail">E-mail</label>
+          <input id="loginEmail" type="email" required placeholder="admin@fbfv.org" />
+        </div>
+        <div class="form-group">
+          <label for="loginPassword">Senha</label>
+          <input id="loginPassword" type="password" required placeholder="••••••••" />
+        </div>
+        <button class="btn btn-primary" type="submit" style="width:100%;">Entrar</button>
+      </form>
+    </section>
+
+    <section id="adminDashboard" class="hidden">
+      <p style="margin-bottom:14px;color:var(--muted);">Logado como: <strong id="adminUserEmail">-</strong></p>
+
+      <div class="admin-grid">
+        <div class="card">
+          <h2>1. Cadastrar Clube</h2>
+          <form id="clubForm">
+            <div class="form-group">
+              <label for="clubName">Nome do Clube</label>
+              <input id="clubName" type="text" required placeholder="Ex: Corinthians Virtual" />
+            </div>
+            <div class="form-group">
+              <label for="clubShort">Sigla (3 letras)</label>
+              <input id="clubShort" type="text" maxlength="4" required placeholder="COR" />
+            </div>
+            <div class="form-group">
+              <label for="clubCity">Cidade / UF</label>
+              <input id="clubCity" type="text" placeholder="São Paulo - SP" />
+            </div>
+            <button class="btn btn-primary" type="submit">Salvar Clube</button>
+          </form>
+        </div>
+
+        <div class="card">
+          <h2>2. Cadastrar Atleta</h2>
+          <form id="playerForm">
+            <div class="form-group">
+              <label for="playerName">Nome Completo</label>
+              <input id="playerName" type="text" required placeholder="Nome do jogador" />
+            </div>
+            <div class="form-group">
+              <label for="playerPosition">Posição</label>
+              <select id="playerPosition" required>
+                <option value="GOL">GOL</option>
+                <option value="ZAG">ZAG</option>
+                <option value="LAT">LAT</option>
+                <option value="VOL">VOL</option>
+                <option value="MEI">MEI</option>
+                <option value="ATA">ATA</option>
+              </select>
+            </div>
+            <div class="form-group">
+              <label for="playerClubSelect">Clube Atual</label>
+              <select id="playerClubSelect"></select>
+            </div>
+            <button class="btn btn-primary" type="submit">Salvar Atleta</button>
+          </form>
+        </div>
+      </div>
+
+      <div class="card">
+        <h2>3. Publicar Movimentação no BID</h2>
+        <form id="transferForm" class="admin-grid" style="margin-top:8px;">
+          <div class="form-group">
+            <label for="protocolCode">Código de Protocolo</label>
+            <input id="protocolCode" type="text" required placeholder="FBFV-2026-0015" />
+          </div>
+          <div class="form-group">
+            <label for="transferPlayerSelect">Atleta</label>
+            <select id="transferPlayerSelect" required></select>
+          </div>
+          <div class="form-group">
+            <label for="fromClubSelect">Clube de Origem</label>
+            <select id="fromClubSelect"></select>
+          </div>
+          <div class="form-group">
+            <label for="toClubSelect">Clube de Destino</label>
+            <select id="toClubSelect"></select>
+          </div>
+          <div class="form-group">
+            <label for="movementType">Tipo de Movimentação</label>
+            <select id="movementType">
+              <option value="TRANSFERENCIA">TRANSFERENCIA</option>
+              <option value="EMPRESTIMO">EMPRESTIMO</option>
+              <option value="RENOVACAO">RENOVACAO</option>
+              <option value="RESCISAO">RESCISAO</option>
+            </select>
+          </div>
+          <div class="form-group">
+            <label for="feeLabel">Condição / Valor</label>
+            <input id="feeLabel" type="text" placeholder="Livre / Sem custo" />
+          </div>
+          <div class="form-group">
+            <label for="transferStatus">Status</label>
+            <select id="transferStatus">
+              <option value="PUBLICADO">PUBLICADO</option>
+              <option value="PENDENTE">PENDENTE</option>
+              <option value="CANCELADO">CANCELADO</option>
+            </select>
+          </div>
+          <div class="form-group" style="display:flex;align-items:flex-end;">
+            <button class="btn btn-primary" type="submit" style="width:100%;">Publicar no BID</button>
+          </div>
+        </form>
+      </div>
+    </section>
+  </main>
+
+  <footer class="footer">
+    <div class="container">BID FBFV — Área Administrativa</div>
+  </footer>
+
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  <script src="js/config.js"></script>
+  <script src="js/admin.js"></script>
+</body>
+</html>
