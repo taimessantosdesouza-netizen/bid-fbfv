@@ -11,6 +11,148 @@ function setFeedback(msg, isError = false) {
   el.classList.remove("hidden");
 }
 
+function createCropController({
+  fileInputId,
+  boxId,
+  viewportId,
+  imgId,
+  zoomId,
+  resetId,
+  outWidth,
+  outHeight
+}) {
+  const fileInput = document.getElementById(fileInputId);
+  const box = document.getElementById(boxId);
+  const viewport = document.getElementById(viewportId);
+  const img = document.getElementById(imgId);
+  const zoomSlider = document.getElementById(zoomId);
+  const resetBtn = document.getElementById(resetId);
+
+  const state = {
+    hasImage: false,
+    offsetX: 0,
+    offsetY: 0,
+    zoom: 1,
+    dragging: false,
+    startX: 0,
+    startY: 0,
+    baseScale: 1
+  };
+
+  function computeBaseScale() {
+    if (!img.naturalWidth || !img.naturalHeight) return;
+    const vw = viewport.clientWidth || outWidth;
+    const vh = viewport.clientHeight || outHeight;
+    // Garante que a imagem cubra toda a caixa de recorte
+    state.baseScale = Math.max(vw / img.naturalWidth, vh / img.naturalHeight);
+  }
+
+  function applyTransform() {
+    const scale = state.baseScale * state.zoom;
+    img.style.transform = `translate(calc(-50% + ${state.offsetX}px), calc(-50% + ${state.offsetY}px)) scale(${scale})`;
+  }
+
+  function resetCrop() {
+    state.offsetX = 0;
+    state.offsetY = 0;
+    state.zoom = 1;
+    if (zoomSlider) zoomSlider.value = "1";
+    computeBaseScale();
+    applyTransform();
+  }
+
+  fileInput?.addEventListener("change", () => {
+    const file = fileInput.files?.[0];
+    if (!file) {
+      state.hasImage = false;
+      box?.classList.add("hidden");
+      return;
+    }
+
+    const reader = new FileReader();
+    reader.onload = (ev) => {
+      img.onload = () => {
+        state.hasImage = true;
+        box?.classList.remove("hidden");
+        resetCrop();
+      };
+      img.src = ev.target.result;
+    };
+    reader.readAsDataURL(file);
+  });
+
+  zoomSlider?.addEventListener("input", () => {
+    state.zoom = parseFloat(zoomSlider.value || "1");
+    applyTransform();
+  });
+
+  resetBtn?.addEventListener("click", resetCrop);
+
+  viewport?.addEventListener("pointerdown", (e) => {
+    if (!state.hasImage) return;
+    state.dragging = true;
+    state.startX = e.clientX - state.offsetX;
+    state.startY = e.clientY - state.offsetY;
+    viewport.setPointerCapture(e.pointerId);
+  });
+
+  viewport?.addEventListener("pointermove", (e) => {
+    if (!state.dragging) return;
+    state.offsetX = e.clientX - state.startX;
+    state.offsetY = e.clientY - state.startY;
+    applyTransform();
+  });
+
+  viewport?.addEventListener("pointerup", () => {
+    state.dragging = false;
+  });
+
+  function clear() {
+    state.hasImage = false;
+    state.offsetX = 0;
+    state.offsetY = 0;
+    state.zoom = 1;
+    if (zoomSlider) zoomSlider.value = "1";
+    img.removeAttribute("src");
+    box?.classList.add("hidden");
+  }
+
+  function exportCroppedBlob() {
+    return new Promise((resolve, reject) => {
+      if (!state.hasImage) return resolve(null);
+
+      const canvas = document.createElement("canvas");
+      canvas.width = outWidth;
+      canvas.height = outHeight;
+      const ctx = canvas.getContext("2d");
+
+      const vw = viewport.clientWidth || outWidth;
+      const vh = viewport.clientHeight || outHeight;
+      const ratioX = outWidth / vw;
+      const ratioY = outHeight / vh;
+
+      const totalScale = state.baseScale * state.zoom;
+      const drawW = img.naturalWidth * totalScale * ratioX;
+      const drawH = img.naturalHeight * totalScale * ratioY;
+      const drawX = (outWidth / 2) + (state.offsetX * ratioX) - (drawW / 2);
+      const drawY = (outHeight / 2) + (state.offsetY * ratioY) - (drawH / 2);
+
+      ctx.clearRect(0, 0, outWidth, outHeight);
+      ctx.drawImage(img, drawX, drawY, drawW, drawH);
+
+      canvas.toBlob((blob) => {
+        if (!blob) return reject(new Error("Não foi possível gerar o recorte da imagem."));
+        resolve(blob);
+      }, "image/png", 0.92);
+    });
+  }
+
+  return { clear, exportCroppedBlob };
+}
+
+let clubCrop = null;
+let playerCrop = null;
+
 function randomSixDigitCode() {
   return String(Math.floor(100000 + Math.random() * 900000));
 }
@@ -20,24 +162,23 @@ function randomSevenDigitContract(uf = "BR") {
   return `${num}${(uf || "BR").toUpperCase()}`;
 }
 
-async function uploadImageToBidBucket(file, folder) {
-  if (!file) return null;
+async function uploadCroppedBlobToBidBucket(blob, folder) {
+  if (!blob) return null;
 
-  const maxBytes = 3 * 1024 * 1024; // 3 MB
-  if (file.size > maxBytes) {
-    throw new Error("A imagem deve ter no máximo 3 MB.");
+  const maxBytes = 3 * 1024 * 1024;
+  if (blob.size > maxBytes) {
+    throw new Error("A imagem recortada ultrapassou 3 MB. Reduza o zoom ou use uma imagem menor.");
   }
 
-  const ext = (file.name.split(".").pop() || "png").toLowerCase().replace(/[^a-z0-9]/g, "");
-  const safeName = `${Date.now()}-${Math.random().toString(36).slice(2, 8)}.${ext}`;
+  const safeName = `${Date.now()}-${Math.random().toString(36).slice(2, 8)}.png`;
   const filePath = `${folder}/${safeName}`;
 
   const { error: uploadError } = await supabaseClient.storage
     .from("bid-imagens")
-    .upload(filePath, file, {
+    .upload(filePath, blob, {
       cacheControl: "3600",
       upsert: false,
-      contentType: file.type || undefined
+      contentType: "image/png"
     });
 
   if (uploadError) {
@@ -156,6 +297,28 @@ async function checkSession() {
 }
 
 document.addEventListener("DOMContentLoaded", () => {
+  clubCrop = createCropController({
+    fileInputId: "clubLogoFile",
+    boxId: "clubCropBox",
+    viewportId: "clubCropViewport",
+    imgId: "clubCropImg",
+    zoomId: "clubCropZoom",
+    resetId: "clubCropReset",
+    outWidth: 256,
+    outHeight: 256
+  });
+
+  playerCrop = createCropController({
+    fileInputId: "playerPhotoFile",
+    boxId: "playerCropBox",
+    viewportId: "playerCropViewport",
+    imgId: "playerCropImg",
+    zoomId: "playerCropZoom",
+    resetId: "playerCropReset",
+    outWidth: 300,
+    outHeight: 400
+  });
+
   checkSession();
 
   document.getElementById("loginForm")?.addEventListener("submit", async (e) => {
@@ -213,22 +376,23 @@ document.addEventListener("DOMContentLoaded", () => {
     const name = document.getElementById("clubName").value.trim();
     const short_name = document.getElementById("clubShort").value.trim().toUpperCase();
     const uf = document.getElementById("clubUf").value;
-    const logoFile = document.getElementById("clubLogoFile")?.files?.[0] || null;
 
     if (!uf) return setFeedback("Selecione o estado (UF) do clube.", true);
 
     try {
-      setFeedback("Enviando escudo e salvando clube...");
-      const logo_url = await uploadImageToBidBucket(logoFile, "escudos");
+      setFeedback("Recortando escudo e salvando clube...");
+      const croppedBlob = await clubCrop.exportCroppedBlob();
+      const logo_url = await uploadCroppedBlobToBidBucket(croppedBlob, "escudos");
 
       const { error } = await supabaseClient.from("clubs").insert({ name, short_name, uf, logo_url });
       if (error) return setFeedback("Erro ao cadastrar clube: " + error.message, true);
 
       e.target.reset();
-      setFeedback("Clube cadastrado e escudo salvo com sucesso!");
+      clubCrop.clear();
+      setFeedback("Clube cadastrado e escudo recortado salvo com sucesso!");
       await refreshAdminSelects();
     } catch (err) {
-      setFeedback(err.message || "Erro ao enviar escudo.", true);
+      setFeedback(err.message || "Erro ao processar escudo.", true);
     }
   });
 
@@ -238,14 +402,14 @@ document.addEventListener("DOMContentLoaded", () => {
     const nickname = document.getElementById("playerNickname").value.trim() || null;
     const position = document.getElementById("playerPosition").value;
     const birth_date = document.getElementById("playerBirthDate").value || null;
-    const photoFile = document.getElementById("playerPhotoFile")?.files?.[0] || null;
     const current_club_id = document.getElementById("playerClubSelect").value || null;
 
     if (!position) return setFeedback("Selecione a posição do atleta.", true);
 
     try {
-      setFeedback("Enviando foto e salvando atleta...");
-      const photo_url = await uploadImageToBidBucket(photoFile, "atletas");
+      setFeedback("Recortando foto e salvando atleta...");
+      const croppedBlob = await playerCrop.exportCroppedBlob();
+      const photo_url = await uploadCroppedBlobToBidBucket(croppedBlob, "atletas");
 
       const { error } = await supabaseClient.from("players").insert({
         full_name,
@@ -258,10 +422,11 @@ document.addEventListener("DOMContentLoaded", () => {
       if (error) return setFeedback("Erro ao cadastrar atleta: " + error.message, true);
 
       e.target.reset();
-      setFeedback("Atleta cadastrado e foto salva com sucesso!");
+      playerCrop.clear();
+      setFeedback("Atleta cadastrado e foto recortada salva com sucesso!");
       await refreshAdminSelects();
     } catch (err) {
-      setFeedback(err.message || "Erro ao enviar foto.", true);
+      setFeedback(err.message || "Erro ao processar foto.", true);
     }
   });
 
