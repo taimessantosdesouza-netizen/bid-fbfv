@@ -5,6 +5,68 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>Administração — BID FBFV</title>
   <link rel="stylesheet" href="css/styles.css" />
+  <style>
+    .crop-box {
+      margin-top: 8px;
+      border: 1px dashed #cbd5e1;
+      border-radius: 10px;
+      background: #f8fafc;
+      padding: 12px;
+    }
+    .crop-viewport {
+      position: relative;
+      margin: 0 auto;
+      background: #0f172a;
+      border-radius: 8px;
+      overflow: hidden;
+      cursor: grab;
+      user-select: none;
+      touch-action: none;
+      border: 2px solid var(--cbf-blue);
+    }
+    .crop-viewport:active {
+      cursor: grabbing;
+    }
+    .crop-viewport.crop-club {
+      width: 140px;
+      height: 140px;
+    }
+    .crop-viewport.crop-player {
+      width: 135px;
+      height: 180px;
+    }
+    .crop-viewport img {
+      position: absolute;
+      top: 50%;
+      left: 50%;
+      transform-origin: center center;
+      pointer-events: none;
+      max-width: none;
+    }
+    .crop-controls {
+      margin-top: 10px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 10px;
+      font-size: 0.78rem;
+      color: var(--text-muted);
+    }
+    .crop-controls input[type="range"] {
+      flex: 1;
+      accent-color: var(--cbf-blue);
+    }
+    .crop-reset-btn {
+      border: 1px solid #cbd5e1;
+      background: #ffffff;
+      color: var(--text-main);
+      border-radius: 6px;
+      padding: 3px 8px;
+      font-size: 0.75rem;
+      font-weight: 600;
+      cursor: pointer;
+    }
+  </style>
 </head>
 <body>
   <header class="bid-header">
@@ -30,7 +92,7 @@
   <main class="admin-container">
     <div class="admin-banner">
       <h1>Gestão Oficial do BID — FBFV</h1>
-      <p>Cadastre clubes enviando o escudo do PC, atletas enviando a foto do PC e publique no Boletim Informativo Diário.</p>
+      <p>Cadastre clubes e atletas com preview e recorte na hora, e publique no Boletim Informativo Diário.</p>
       <div id="adminFeedback" class="notice-bar hidden"></div>
     </div>
 
@@ -100,8 +162,18 @@
               </select>
             </div>
             <div class="form-group">
-              <label for="clubLogoFile">Escudo do Clube (Arquivo do PC — PNG/JPG/WEBP)</label>
+              <label for="clubLogoFile">Escudo do Clube (PNG/JPG/WEBP)</label>
               <input id="clubLogoFile" class="form-control" type="file" accept="image/png,image/jpeg,image/webp" style="padding:6px;" />
+              <div id="clubCropBox" class="crop-box hidden">
+                <div id="clubCropViewport" class="crop-viewport crop-club">
+                  <img id="clubCropImg" alt="Preview do escudo" />
+                </div>
+                <div class="crop-controls">
+                  <span>Zoom</span>
+                  <input id="clubCropZoom" type="range" min="1" max="3" step="0.02" value="1" />
+                  <button id="clubCropReset" class="crop-reset-btn" type="button">Centralizar</button>
+                </div>
+              </div>
             </div>
             <button class="btn-cbf-primary" type="submit">Salvar Clube</button>
           </form>
@@ -135,8 +207,18 @@
               <input id="playerBirthDate" class="form-control" type="date" />
             </div>
             <div class="form-group">
-              <label for="playerPhotoFile">Foto do Atleta (Arquivo do PC — PNG/JPG/WEBP)</label>
+              <label for="playerPhotoFile">Foto do Atleta (PNG/JPG/WEBP)</label>
               <input id="playerPhotoFile" class="form-control" type="file" accept="image/png,image/jpeg,image/webp" style="padding:6px;" />
+              <div id="playerCropBox" class="crop-box hidden">
+                <div id="playerCropViewport" class="crop-viewport crop-player">
+                  <img id="playerCropImg" alt="Preview da foto do atleta" />
+                </div>
+                <div class="crop-controls">
+                  <span>Zoom</span>
+                  <input id="playerCropZoom" type="range" min="1" max="3" step="0.02" value="1" />
+                  <button id="playerCropReset" class="crop-reset-btn" type="button">Centralizar</button>
+                </div>
+              </div>
             </div>
             <div class="form-group">
               <label for="playerClubSelect">Clube Atual</label>
