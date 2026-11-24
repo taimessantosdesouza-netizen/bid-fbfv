@@ -11,6 +11,44 @@ function setFeedback(msg, isError = false) {
   el.classList.remove("hidden");
 }
 
+function randomSixDigitCode() {
+  return String(Math.floor(100000 + Math.random() * 900000));
+}
+
+async function generateUniqueBidRegistration() {
+  if (!supabaseClient) return randomSixDigitCode();
+
+  for (let attempt = 0; attempt < 15; attempt++) {
+    const candidate = randomSixDigitCode();
+    const { data, error } = await supabaseClient
+      .from("transfers")
+      .select("id")
+      .eq("bid_registration", candidate)
+      .limit(1);
+
+    if (!error && (!data || data.length === 0)) {
+      return candidate;
+    }
+  }
+
+  return String(Date.now()).slice(-6);
+}
+
+async function getExistingBidForPlayer(playerId) {
+  if (!supabaseClient || !playerId) return "";
+
+  const { data, error } = await supabaseClient
+    .from("transfers")
+    .select("bid_registration")
+    .eq("player_id", playerId)
+    .not("bid_registration", "is", null)
+    .order("published_at", { ascending: false })
+    .limit(1);
+
+  if (error || !data || !data.length) return "";
+  return data[0].bid_registration || "";
+}
+
 async function refreshAdminSelects() {
   if (!supabaseClient) return;
 
@@ -86,6 +124,18 @@ document.addEventListener("DOMContentLoaded", () => {
     await checkSession();
   });
 
+  document.getElementById("transferPlayerSelect")?.addEventListener("change", async (e) => {
+    const bidInput = document.getElementById("bidRegistration");
+    if (!bidInput || !e.target.value) return;
+
+    const existingBid = await getExistingBidForPlayer(e.target.value);
+    if (existingBid) {
+      bidInput.value = existingBid;
+    } else if (!bidInput.value.trim()) {
+      bidInput.value = await generateUniqueBidRegistration();
+    }
+  });
+
   document.getElementById("clubForm")?.addEventListener("submit", async (e) => {
     e.preventDefault();
     const name = document.getElementById("clubName").value.trim();
@@ -128,7 +178,13 @@ document.addEventListener("DOMContentLoaded", () => {
   document.getElementById("transferForm")?.addEventListener("submit", async (e) => {
     e.preventDefault();
     const protocol_code = document.getElementById("protocolCode").value.trim().toUpperCase();
-    const bid_registration = document.getElementById("bidRegistration").value.trim() || null;
+    const bidInput = document.getElementById("bidRegistration");
+    let bid_registration = (bidInput?.value || "").trim();
+
+    if (!bid_registration) {
+      bid_registration = await generateUniqueBidRegistration();
+    }
+
     const player_id = document.getElementById("transferPlayerSelect").value;
     const from_club_id = document.getElementById("fromClubSelect").value || null;
     const to_club_id = document.getElementById("toClubSelect").value || null;
@@ -137,7 +193,7 @@ document.addEventListener("DOMContentLoaded", () => {
     const fee_label = document.getElementById("feeLabel").value.trim() || "Sem custo";
     const status = document.getElementById("transferStatus").value;
 
-    const { error } = await supabaseClient.from("transfers").insert({
+    let { error } = await supabaseClient.from("transfers").insert({
       protocol_code,
       bid_registration,
       player_id,
@@ -149,6 +205,22 @@ document.addEventListener("DOMContentLoaded", () => {
       status
     });
 
+    if (error && error.code === "23505") {
+      bid_registration = await generateUniqueBidRegistration();
+      const retry = await supabaseClient.from("transfers").insert({
+        protocol_code,
+        bid_registration,
+        player_id,
+        from_club_id,
+        to_club_id,
+        movement_type,
+        start_date,
+        fee_label,
+        status
+      });
+      error = retry.error;
+    }
+
     if (error) return setFeedback("Erro ao publicar no BID: " + error.message, true);
 
     if (status === "PUBLICADO" && player_id) {
@@ -156,7 +228,7 @@ document.addEventListener("DOMContentLoaded", () => {
     }
 
     e.target.reset();
-    setFeedback("Publicação registrada no BID!");
+    setFeedback(`Publicação registrada no BID! Inscrição (BID): ${bid_registration}`);
     await refreshAdminSelects();
   });
 });
