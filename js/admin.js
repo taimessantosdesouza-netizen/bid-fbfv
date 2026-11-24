@@ -40,14 +40,14 @@ function createCropController({
   };
 
   function computeBaseScale() {
-    if (!img.naturalWidth || !img.naturalHeight) return;
+    if (!img || !viewport || !img.naturalWidth || !img.naturalHeight) return;
     const vw = viewport.clientWidth || outWidth;
     const vh = viewport.clientHeight || outHeight;
-    // Garante que a imagem cubra toda a caixa de recorte
     state.baseScale = Math.max(vw / img.naturalWidth, vh / img.naturalHeight);
   }
 
   function applyTransform() {
+    if (!img) return;
     const scale = state.baseScale * state.zoom;
     img.style.transform = `translate(calc(-50% + ${state.offsetX}px), calc(-50% + ${state.offsetY}px)) scale(${scale})`;
   }
@@ -61,24 +61,30 @@ function createCropController({
     applyTransform();
   }
 
-  fileInput?.addEventListener("change", () => {
-    const file = fileInput.files?.[0];
-    if (!file) {
+  function loadSelectedFile(file) {
+    if (!file || !box || !img) {
       state.hasImage = false;
       box?.classList.add("hidden");
       return;
     }
 
-    const reader = new FileReader();
-    reader.onload = (ev) => {
-      img.onload = () => {
-        state.hasImage = true;
-        box?.classList.remove("hidden");
-        resetCrop();
-      };
-      img.src = ev.target.result;
+    const objectUrl = URL.createObjectURL(file);
+    box.classList.remove("hidden");
+
+    img.onload = () => {
+      state.hasImage = true;
+      resetCrop();
     };
-    reader.readAsDataURL(file);
+    img.onerror = () => {
+      state.hasImage = false;
+      setFeedback("Não foi possível pré-visualizar este arquivo de imagem.", true);
+    };
+    img.src = objectUrl;
+  }
+
+  fileInput?.addEventListener("change", (e) => {
+    const file = e.target.files?.[0] || null;
+    loadSelectedFile(file);
   });
 
   zoomSlider?.addEventListener("input", () => {
@@ -113,21 +119,21 @@ function createCropController({
     state.offsetY = 0;
     state.zoom = 1;
     if (zoomSlider) zoomSlider.value = "1";
-    img.removeAttribute("src");
+    if (img) img.removeAttribute("src");
     box?.classList.add("hidden");
   }
 
   function exportCroppedBlob() {
     return new Promise((resolve, reject) => {
-      if (!state.hasImage) return resolve(null);
+      if (!state.hasImage || !img) return resolve(null);
 
       const canvas = document.createElement("canvas");
       canvas.width = outWidth;
       canvas.height = outHeight;
       const ctx = canvas.getContext("2d");
 
-      const vw = viewport.clientWidth || outWidth;
-      const vh = viewport.clientHeight || outHeight;
+      const vw = viewport?.clientWidth || outWidth;
+      const vh = viewport?.clientHeight || outHeight;
       const ratioX = outWidth / vw;
       const ratioY = outHeight / vh;
 
@@ -248,29 +254,33 @@ async function getExistingBidForPlayer(playerId) {
 async function refreshAdminSelects() {
   if (!supabaseClient) return;
 
-  const [{ data: clubs }, { data: players }] = await Promise.all([
-    supabaseClient.from("clubs").select("id, name, short_name, uf").order("name"),
-    supabaseClient.from("players").select("id, full_name, position, current_club_id").order("full_name")
-  ]);
+  try {
+    const [{ data: clubs }, { data: players }] = await Promise.all([
+      supabaseClient.from("clubs").select("id, name, short_name, uf").order("name"),
+      supabaseClient.from("players").select("id, full_name, position, current_club_id").order("full_name")
+    ]);
 
-  clubsCache = clubs || [];
-  playersCache = players || [];
+    clubsCache = clubs || [];
+    playersCache = players || [];
 
-  const clubOptions = '<option value="">-- Sem clube / Livre --</option>' +
-    clubsCache.map((c) => `<option value="${c.id}">${c.name} (${c.short_name} - ${c.uf || ""})</option>`).join("");
+    const clubOptions = '<option value="">-- Sem clube / Livre --</option>' +
+      clubsCache.map((c) => `<option value="${c.id}">${c.name} (${c.short_name} - ${c.uf || ""})</option>`).join("");
 
-  const fromSelect = document.getElementById("fromClubSelect");
-  const toSelect = document.getElementById("toClubSelect");
-  const playerClubSelect = document.getElementById("playerClubSelect");
+    const fromSelect = document.getElementById("fromClubSelect");
+    const toSelect = document.getElementById("toClubSelect");
+    const playerClubSelect = document.getElementById("playerClubSelect");
 
-  if (fromSelect) fromSelect.innerHTML = clubOptions;
-  if (toSelect) toSelect.innerHTML = clubOptions;
-  if (playerClubSelect) playerClubSelect.innerHTML = clubOptions;
+    if (fromSelect) fromSelect.innerHTML = clubOptions;
+    if (toSelect) toSelect.innerHTML = clubOptions;
+    if (playerClubSelect) playerClubSelect.innerHTML = clubOptions;
 
-  const playerSelect = document.getElementById("transferPlayerSelect");
-  if (playerSelect) {
-    playerSelect.innerHTML = '<option value="">-- Selecione o Atleta --</option>' +
-      playersCache.map((p) => `<option value="${p.id}">${p.full_name} (${p.position})</option>`).join("");
+    const playerSelect = document.getElementById("transferPlayerSelect");
+    if (playerSelect) {
+      playerSelect.innerHTML = '<option value="">-- Selecione o Atleta --</option>' +
+        playersCache.map((p) => `<option value="${p.id}">${p.full_name} (${p.position})</option>`).join("");
+    }
+  } catch (err) {
+    console.error("Erro ao carregar selects do admin:", err);
   }
 }
 
@@ -283,17 +293,21 @@ async function checkSession() {
     return;
   }
 
-  const { data: { session } } = await supabaseClient.auth.getSession();
-  if (!session) {
-    loginBox?.classList.remove("hidden");
-    dashBox?.classList.add("hidden");
-    return;
-  }
+  try {
+    const { data: { session } } = await supabaseClient.auth.getSession();
+    if (!session) {
+      loginBox?.classList.remove("hidden");
+      dashBox?.classList.add("hidden");
+      return;
+    }
 
-  loginBox?.classList.add("hidden");
-  dashBox?.classList.remove("hidden");
-  document.getElementById("adminUserEmail").textContent = session.user.email || "Administrador";
-  await refreshAdminSelects();
+    loginBox?.classList.add("hidden");
+    dashBox?.classList.remove("hidden");
+    document.getElementById("adminUserEmail").textContent = session.user.email || "Administrador";
+    await refreshAdminSelects();
+  } catch (err) {
+    console.error("Erro ao verificar sessão:", err);
+  }
 }
 
 document.addEventListener("DOMContentLoaded", () => {
