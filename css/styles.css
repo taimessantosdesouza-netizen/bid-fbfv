@@ -1,4 +1,4 @@
-@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&display=swap');
 
 :root {
   --bg-page: #ffffff;
@@ -636,12 +636,12 @@ a {
   overflow-wrap: anywhere;
 }
 
-/* Rodapé com logo do criador */
+/* Rodapé com desenho SVG da logo */
 .bid-footer {
   margin-top: 40px;
   background: #141820;
   color: #e5e7eb;
-  border-top: 2px solid #00ff44;
+  border-top: 2px solid #39ff14;
   padding: 20px 32px;
 }
 
@@ -661,14 +661,11 @@ a {
   gap: 12px;
 }
 
-.creator-logo-img {
-  width: 44px;
-  height: 44px;
-  border-radius: 50%;
-  object-fit: cover;
-  border: 1.5px solid #00ff44;
-  background: #000000;
+.creator-logo-svg {
+  width: 54px;
+  height: 54px;
   flex-shrink: 0;
+  filter: drop-shadow(0 0 6px rgba(57, 255, 20, 0.25));
 }
 
 .creator-text {
