@@ -1,221 +1,285 @@
-<!DOCTYPE html>
-<html lang="pt-BR">
-<head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Administração — BID FBFV</title>
-  <link rel="stylesheet" href="css/styles.css" />
-</head>
-<body>
-  <header class="bid-header">
-    <div class="bid-header-inner">
-      <a class="bid-logo" href="index.html">
-        <svg width="42" height="48" viewBox="0 0 90 105" fill="none" xmlns="http://www.w3.org/2000/svg">
-          <path d="M18 24H72V58C72 78 45 94 45 94C45 94 18 78 18 58V24Z" fill="#00237d" stroke="#ffd000" stroke-width="3"/>
-          <path d="M45 27L67 54L45 86L23 54L45 27Z" fill="#009c3b"/>
-          <path d="M45 33L61 54L45 79L29 54L45 33Z" fill="#ffd000"/>
-          <rect x="25" y="47" width="40" height="14" rx="2" fill="#ffffff"/>
-          <text x="45" y="57.5" text-anchor="middle" fill="#00237d" font-family="Inter, Arial, sans-serif" font-weight="800" font-size="11">FBFV</text>
-        </svg>
-        <span class="bid-logo-text">BID • ADMIN</span>
-      </a>
+let clubsCache = [];
+let playersCache = [];
 
-      <div style="display:flex;align-items:center;gap:10px;">
-        <a class="header-admin-link" href="index.html">Voltar ao BID Público</a>
-        <button id="logoutBtn" class="btn-cbf-danger" type="button">Sair</button>
-      </div>
-    </div>
-  </header>
+function setFeedback(msg, isError = false) {
+  const el = document.getElementById("adminFeedback");
+  if (!el) return;
+  el.textContent = msg;
+  el.style.background = isError ? "#fef2f2" : "#eff6ff";
+  el.style.borderColor = isError ? "#fecaca" : "#bfdbfe";
+  el.style.color = isError ? "#b91c1c" : "#1e40af";
+  el.classList.remove("hidden");
+}
 
-  <main class="admin-container">
-    <div class="admin-banner">
-      <h1>Gestão Oficial do BID — FBFV</h1>
-      <p>Cadastre clubes com escudo, atletas com foto e publique contratos e liberações no Boletim Informativo Diário.</p>
-      <div id="adminFeedback" class="notice-bar hidden"></div>
-    </div>
+function randomSixDigitCode() {
+  return String(Math.floor(100000 + Math.random() * 900000));
+}
 
-    <section id="loginPanel" class="admin-card" style="max-width:440px;margin:0 auto;">
-      <h2>Acesso Restrito — Administrador</h2>
-      <form id="loginForm">
-        <div class="form-group">
-          <label for="loginEmail">E-mail institucional</label>
-          <input id="loginEmail" class="form-control" type="email" required placeholder="admin@fbfv.org" />
-        </div>
-        <div class="form-group">
-          <label for="loginPassword">Senha</label>
-          <input id="loginPassword" class="form-control" type="password" required placeholder="••••••••" />
-        </div>
-        <button class="btn-cbf-primary" type="submit" style="width:100%;">Entrar no Painel</button>
-      </form>
-    </section>
+function randomSevenDigitContract(uf = "BR") {
+  const num = Math.floor(1000000 + Math.random() * 9000000);
+  return `${num}${(uf || "BR").toUpperCase()}`;
+}
 
-    <section id="adminDashboard" class="hidden">
-      <p style="margin-bottom:14px;font-size:0.88rem;color:var(--text-muted);">
-        Sessão ativa: <strong id="adminUserEmail" style="color:var(--cbf-navy);">-</strong>
-      </p>
+async function generateUniqueBidRegistration() {
+  if (!supabaseClient) return randomSixDigitCode();
 
-      <div class="admin-grid">
-        <div class="admin-card">
-          <h2>1. Cadastrar Clube</h2>
-          <form id="clubForm">
-            <div class="form-group">
-              <label for="clubName">Nome Oficial do Clube</label>
-              <input id="clubName" class="form-control" type="text" required placeholder="Ex: Sport Club Corinthians Virtual" />
-            </div>
-            <div class="form-group">
-              <label for="clubShort">Sigla (3 a 4 letras)</label>
-              <input id="clubShort" class="form-control" type="text" maxlength="4" required placeholder="COR" />
-            </div>
-            <div class="form-group">
-              <label for="clubUf">Estado (UF)</label>
-              <select id="clubUf" class="form-control" required>
-                <option value="">-- Selecione o Estado --</option>
-                <option value="AC">AC — Acre</option>
-                <option value="AL">AL — Alagoas</option>
-                <option value="AP">AP — Amapá</option>
-                <option value="AM">AM — Amazonas</option>
-                <option value="BA">BA — Bahia</option>
-                <option value="CE">CE — Ceará</option>
-                <option value="DF">DF — Distrito Federal</option>
-                <option value="ES">ES — Espírito Santo</option>
-                <option value="GO">GO — Goiás</option>
-                <option value="MA">MA — Maranhão</option>
-                <option value="MT">MT — Mato Grosso</option>
-                <option value="MS">MS — Mato Grosso do Sul</option>
-                <option value="MG">MG — Minas Gerais</option>
-                <option value="PA">PA — Pará</option>
-                <option value="PB">PB — Paraíba</option>
-                <option value="PR">PR — Paraná</option>
-                <option value="PE">PE — Pernambuco</option>
-                <option value="PI">PI — Piauí</option>
-                <option value="RJ">RJ — Rio de Janeiro</option>
-                <option value="RN">RN — Rio Grande do Norte</option>
-                <option value="RS">RS — Rio Grande do Sul</option>
-                <option value="RO">RO — Rondônia</option>
-                <option value="RR">RR — Roraima</option>
-                <option value="SC">SC — Santa Catarina</option>
-                <option value="SP">SP — São Paulo</option>
-                <option value="SE">SE — Sergipe</option>
-                <option value="TO">TO — Tocantins</option>
-              </select>
-            </div>
-            <div class="form-group">
-              <label for="clubLogoUrl">URL do Escudo (PNG/JPG)</label>
-              <input id="clubLogoUrl" class="form-control" type="url" placeholder="https://.../escudo.png" />
-            </div>
-            <button class="btn-cbf-primary" type="submit">Salvar Clube</button>
-          </form>
-        </div>
+  for (let attempt = 0; attempt < 15; attempt++) {
+    const candidate = randomSixDigitCode();
+    const { data, error } = await supabaseClient
+      .from("transfers")
+      .select("id")
+      .eq("bid_registration", candidate)
+      .limit(1);
 
-        <div class="admin-card">
-          <h2>2. Cadastrar Atleta</h2>
-          <form id="playerForm">
-            <div class="form-group">
-              <label for="playerName">Nome Completo</label>
-              <input id="playerName" class="form-control" type="text" required placeholder="Ex: Andre Luiz Turci dos Santos" />
-            </div>
-            <div class="form-group">
-              <label for="playerNickname">Nome no Crachá (Exibido em destaque)</label>
-              <input id="playerNickname" class="form-control" type="text" placeholder="Ex: ANDRÉ LUIZ" />
-            </div>
-            <div class="form-group">
-              <label for="playerPosition">Posição</label>
-              <select id="playerPosition" class="form-control" required>
-                <option value="">-- Selecione a Posição --</option>
-                <option value="GOL">GOL — Goleiro</option>
-                <option value="ZAG">ZAG — Zagueiro</option>
-                <option value="LAT">LAT — Lateral</option>
-                <option value="VOL">VOL — Volante</option>
-                <option value="MEI">MEI — Meia</option>
-                <option value="ATA">ATA — Atacante</option>
-              </select>
-            </div>
-            <div class="form-group">
-              <label for="playerBirthDate">Data de Nascimento</label>
-              <input id="playerBirthDate" class="form-control" type="date" />
-            </div>
-            <div class="form-group">
-              <label for="playerPhotoUrl">URL da Foto 3x4 do Atleta</label>
-              <input id="playerPhotoUrl" class="form-control" type="url" placeholder="https://.../foto.jpg" />
-            </div>
-            <div class="form-group">
-              <label for="playerClubSelect">Clube Atual</label>
-              <select id="playerClubSelect" class="form-control"></select>
-            </div>
-            <button class="btn-cbf-primary" type="submit">Salvar Atleta</button>
-          </form>
-        </div>
-      </div>
+    if (!error && (!data || data.length === 0)) {
+      return candidate;
+    }
+  }
 
-      <div class="admin-card">
-        <h2>3. Publicar Registro no BID</h2>
-        <form id="transferForm" class="admin-grid" style="margin-bottom:0;">
-          <div class="form-group">
-            <label for="transferPlayerSelect">Atleta</label>
-            <select id="transferPlayerSelect" class="form-control" required></select>
-          </div>
-          <div class="form-group">
-            <label for="fromClubSelect">Clube de Origem</label>
-            <select id="fromClubSelect" class="form-control"></select>
-          </div>
-          <div class="form-group">
-            <label for="toClubSelect">Clube de Destino / Atual</label>
-            <select id="toClubSelect" class="form-control"></select>
-          </div>
-          <div class="form-group">
-            <label for="movementType">Tipo de Movimentação</label>
-            <select id="movementType" class="form-control" required>
-              <option value="LIBERAR">LIBERAR — Liberação / Rescisão</option>
-              <option value="TRANSFERENCIA">TRANSFERENCIA — Transferência Definitiva</option>
-              <option value="EMPRESTIMO">EMPRESTIMO — Empréstimo</option>
-              <option value="RENOVACAO">RENOVACAO — Renovação de Contrato</option>
-              <option value="RESCISAO">RESCISAO — Rescisão Contratual</option>
-            </select>
-          </div>
-          <div class="form-group">
-            <label for="protocolCode">Nº de Contrato</label>
-            <div style="display:flex;gap:8px;">
-              <input id="protocolCode" class="form-control" type="text" required placeholder="Ex: 2947500SP" />
-              <button id="generateContractBtn" class="header-admin-link" type="button" style="white-space:nowrap;">Gerar</button>
-            </div>
-          </div>
-          <div class="form-group">
-            <label for="bidRegistration">Inscrição (BID) — Automático</label>
-            <input id="bidRegistration" class="form-control" type="text" placeholder="Gerado automaticamente" />
-          </div>
-          <div class="form-group">
-            <label for="startDate">Data Início (Opcional)</label>
-            <input id="startDate" class="form-control" type="date" />
-          </div>
-          <div class="form-group">
-            <label for="feeLabel">Observação / Condição</label>
-            <select id="feeLabel" class="form-control">
-              <option value="Contrato Profissional">Contrato Profissional</option>
-              <option value="Livre / Sem custo">Livre / Sem custo</option>
-              <option value="Transferência Definitiva">Transferência Definitiva</option>
-              <option value="Empréstimo até o fim da temporada">Empréstimo até o fim da temporada</option>
-              <option value="Renovação Contratual">Renovação Contratual</option>
-              <option value="Rescisão em comum acordo">Rescisão em comum acordo</option>
-            </select>
-          </div>
-          <div class="form-group">
-            <label for="transferStatus">Status da Publicação</label>
-            <select id="transferStatus" class="form-control">
-              <option value="PUBLICADO">PUBLICADO (Visível no BID)</option>
-              <option value="PENDENTE">PENDENTE (Aguardando validação)</option>
-              <option value="CANCELADO">CANCELADO</option>
-            </select>
-          </div>
-          <div class="form-group" style="display:flex;align-items:flex-end;">
-            <button class="btn-cbf-primary" type="submit" style="width:100%;">Publicar no BID</button>
-          </div>
-        </form>
-      </div>
-    </section>
-  </main>
+  return String(Date.now()).slice(-6);
+}
 
-  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-  <script src="js/config.js"></script>
-  <script src="js/admin.js"></script>
-</body>
-</html>
+async function generateUniqueContractCode(uf = "BR") {
+  if (!supabaseClient) return randomSevenDigitContract(uf);
+
+  for (let attempt = 0; attempt < 15; attempt++) {
+    const candidate = randomSevenDigitContract(uf);
+    const { data, error } = await supabaseClient
+      .from("transfers")
+      .select("id")
+      .eq("protocol_code", candidate)
+      .limit(1);
+
+    if (!error && (!data || data.length === 0)) {
+      return candidate;
+    }
+  }
+
+  return `${String(Date.now()).slice(-7)}${(uf || "BR").toUpperCase()}`;
+}
+
+async function getExistingBidForPlayer(playerId) {
+  if (!supabaseClient || !playerId) return "";
+
+  const { data, error } = await supabaseClient
+    .from("transfers")
+    .select("bid_registration")
+    .eq("player_id", playerId)
+    .not("bid_registration", "is", null)
+    .order("published_at", { ascending: false })
+    .limit(1);
+
+  if (error || !data || !data.length) return "";
+  return data[0].bid_registration || "";
+}
+
+async function refreshAdminSelects() {
+  if (!supabaseClient) return;
+
+  const [{ data: clubs }, { data: players }] = await Promise.all([
+    supabaseClient.from("clubs").select("id, name, short_name, uf").order("name"),
+    supabaseClient.from("players").select("id, full_name, position, current_club_id").order("full_name")
+  ]);
+
+  clubsCache = clubs || [];
+  playersCache = players || [];
+
+  const clubOptions = '<option value="">-- Sem clube / Livre --</option>' +
+    clubsCache.map((c) => `<option value="${c.id}">${c.name} (${c.short_name} - ${c.uf || ""})</option>`).join("");
+
+  const fromSelect = document.getElementById("fromClubSelect");
+  const toSelect = document.getElementById("toClubSelect");
+  const playerClubSelect = document.getElementById("playerClubSelect");
+
+  if (fromSelect) fromSelect.innerHTML = clubOptions;
+  if (toSelect) toSelect.innerHTML = clubOptions;
+  if (playerClubSelect) playerClubSelect.innerHTML = clubOptions;
+
+  const playerSelect = document.getElementById("transferPlayerSelect");
+  if (playerSelect) {
+    playerSelect.innerHTML = '<option value="">-- Selecione o Atleta --</option>' +
+      playersCache.map((p) => `<option value="${p.id}">${p.full_name} (${p.position})</option>`).join("");
+  }
+}
+
+async function checkSession() {
+  const loginBox = document.getElementById("loginPanel");
+  const dashBox = document.getElementById("adminDashboard");
+
+  if (!supabaseClient) {
+    setFeedback("Configure a URL e chave anon do Supabase em js/config.js antes de usar o painel administrativo.", true);
+    return;
+  }
+
+  const { data: { session } } = await supabaseClient.auth.getSession();
+  if (!session) {
+    loginBox?.classList.remove("hidden");
+    dashBox?.classList.add("hidden");
+    return;
+  }
+
+  loginBox?.classList.add("hidden");
+  dashBox?.classList.remove("hidden");
+  document.getElementById("adminUserEmail").textContent = session.user.email || "Administrador";
+  await refreshAdminSelects();
+}
+
+document.addEventListener("DOMContentLoaded", () => {
+  checkSession();
+
+  document.getElementById("loginForm")?.addEventListener("submit", async (e) => {
+    e.preventDefault();
+    if (!supabaseClient) return;
+    const email = document.getElementById("loginEmail").value.trim();
+    const password = document.getElementById("loginPassword").value;
+
+    const { error } = await supabaseClient.auth.signInWithPassword({ email, password });
+    if (error) {
+      setFeedback("Falha no login: " + error.message, true);
+      return;
+    }
+    setFeedback("Sessão iniciada com sucesso.");
+    await checkSession();
+  });
+
+  document.getElementById("logoutBtn")?.addEventListener("click", async () => {
+    if (!supabaseClient) return;
+    await supabaseClient.auth.signOut();
+    await checkSession();
+  });
+
+  document.getElementById("transferPlayerSelect")?.addEventListener("change", async (e) => {
+    const playerId = e.target.value;
+    const bidInput = document.getElementById("bidRegistration");
+    const fromSelect = document.getElementById("fromClubSelect");
+    if (!playerId) return;
+
+    const selectedPlayer = playersCache.find((p) => p.id === playerId);
+    if (selectedPlayer && fromSelect && selectedPlayer.current_club_id) {
+      fromSelect.value = selectedPlayer.current_club_id;
+    }
+
+    if (bidInput) {
+      const existingBid = await getExistingBidForPlayer(playerId);
+      bidInput.value = existingBid || await generateUniqueBidRegistration();
+    }
+  });
+
+  document.getElementById("generateContractBtn")?.addEventListener("click", async () => {
+    const toClubId = document.getElementById("toClubSelect")?.value;
+    const fromClubId = document.getElementById("fromClubSelect")?.value;
+    const club = clubsCache.find((c) => c.id === toClubId) || clubsCache.find((c) => c.id === fromClubId);
+    const uf = club?.uf || "BR";
+
+    const contractInput = document.getElementById("protocolCode");
+    if (contractInput) {
+      contractInput.value = await generateUniqueContractCode(uf);
+    }
+  });
+
+  document.getElementById("clubForm")?.addEventListener("submit", async (e) => {
+    e.preventDefault();
+    const name = document.getElementById("clubName").value.trim();
+    const short_name = document.getElementById("clubShort").value.trim().toUpperCase();
+    const uf = document.getElementById("clubUf").value;
+    const logo_url = document.getElementById("clubLogoUrl").value.trim() || null;
+
+    if (!uf) return setFeedback("Selecione o estado (UF) do clube.", true);
+
+    const { error } = await supabaseClient.from("clubs").insert({ name, short_name, uf, logo_url });
+    if (error) return setFeedback("Erro ao cadastrar clube: " + error.message, true);
+
+    e.target.reset();
+    setFeedback("Clube cadastrado com sucesso!");
+    await refreshAdminSelects();
+  });
+
+  document.getElementById("playerForm")?.addEventListener("submit", async (e) => {
+    e.preventDefault();
+    const full_name = document.getElementById("playerName").value.trim();
+    const nickname = document.getElementById("playerNickname").value.trim() || null;
+    const position = document.getElementById("playerPosition").value;
+    const birth_date = document.getElementById("playerBirthDate").value || null;
+    const photo_url = document.getElementById("playerPhotoUrl").value.trim() || null;
+    const current_club_id = document.getElementById("playerClubSelect").value || null;
+
+    if (!position) return setFeedback("Selecione a posição do atleta.", true);
+
+    const { error } = await supabaseClient.from("players").insert({
+      full_name,
+      nickname,
+      position,
+      birth_date,
+      photo_url,
+      current_club_id
+    });
+    if (error) return setFeedback("Erro ao cadastrar atleta: " + error.message, true);
+
+    e.target.reset();
+    setFeedback("Atleta cadastrado com sucesso!");
+    await refreshAdminSelects();
+  });
+
+  document.getElementById("transferForm")?.addEventListener("submit", async (e) => {
+    e.preventDefault();
+    const player_id = document.getElementById("transferPlayerSelect").value;
+    const from_club_id = document.getElementById("fromClubSelect").value || null;
+    const to_club_id = document.getElementById("toClubSelect").value || null;
+    const movement_type = document.getElementById("movementType").value;
+    const start_date = document.getElementById("startDate").value || null;
+    const fee_label = document.getElementById("feeLabel").value;
+    const status = document.getElementById("transferStatus").value;
+
+    const targetClub = clubsCache.find((c) => c.id === to_club_id) || clubsCache.find((c) => c.id === from_club_id);
+    const uf = targetClub?.uf || "BR";
+
+    let protocol_code = document.getElementById("protocolCode").value.trim().toUpperCase();
+    if (!protocol_code) {
+      protocol_code = await generateUniqueContractCode(uf);
+    }
+
+    let bid_registration = document.getElementById("bidRegistration").value.trim();
+    if (!bid_registration) {
+      bid_registration = await generateUniqueBidRegistration();
+    }
+
+    let { error } = await supabaseClient.from("transfers").insert({
+      protocol_code,
+      bid_registration,
+      player_id,
+      from_club_id,
+      to_club_id,
+      movement_type,
+      start_date,
+      fee_label,
+      status
+    });
+
+    if (error && error.code === "23505") {
+      bid_registration = await generateUniqueBidRegistration();
+      protocol_code = await generateUniqueContractCode(uf);
+      const retry = await supabaseClient.from("transfers").insert({
+        protocol_code,
+        bid_registration,
+        player_id,
+        from_club_id,
+        to_club_id,
+        movement_type,
+        start_date,
+        fee_label,
+        status
+      });
+      error = retry.error;
+    }
+
+    if (error) return setFeedback("Erro ao publicar no BID: " + error.message, true);
+
+    if (status === "PUBLICADO" && player_id) {
+      await supabaseClient.from("players").update({ current_club_id: to_club_id }).eq("id", player_id);
+    }
+
+    e.target.reset();
+    setFeedback(`Publicação registrada no BID! Contrato: ${protocol_code} | Inscrição (BID): ${bid_registration}`);
+    await refreshAdminSelects();
+  });
+});
