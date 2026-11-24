@@ -636,6 +636,65 @@ a {
   overflow-wrap: anywhere;
 }
 
+/* Rodapé com logo do criador */
+.bid-footer {
+  margin-top: 40px;
+  background: #141820;
+  color: #e5e7eb;
+  border-top: 2px solid #00ff44;
+  padding: 20px 32px;
+}
+
+.bid-footer-inner {
+  max-width: 1320px;
+  margin: 0 auto;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+  flex-wrap: wrap;
+}
+
+.creator-credit {
+  display: inline-flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.creator-logo-img {
+  width: 44px;
+  height: 44px;
+  border-radius: 50%;
+  object-fit: cover;
+  border: 1.5px solid #00ff44;
+  background: #000000;
+  flex-shrink: 0;
+}
+
+.creator-text {
+  display: flex;
+  flex-direction: column;
+  line-height: 1.2;
+}
+
+.creator-label {
+  font-size: 0.72rem;
+  color: #9ca3af;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+}
+
+.creator-name {
+  font-size: 0.92rem;
+  font-weight: 700;
+  color: #ffffff;
+}
+
+.footer-copy {
+  font-size: 0.82rem;
+  color: #9ca3af;
+}
+
 .hidden {
   display: none !important;
 }
@@ -759,5 +818,14 @@ a {
 
   .modal-box {
     padding: 18px 16px;
+  }
+
+  .bid-footer {
+    padding: 18px 16px;
+  }
+
+  .bid-footer-inner {
+    flex-direction: column;
+    align-items: flex-start;
   }
 }
