@@ -7,74 +7,91 @@
   <link rel="stylesheet" href="css/styles.css" />
 </head>
 <body>
-  <header class="topbar">
-    <div class="container topbar-inner">
-      <a class="brand" href="index.html">
-        <span class="brand-badge">FBFV</span>
-        <span>Painel Administrativo</span>
+  <header class="bid-header">
+    <div class="bid-header-inner">
+      <a class="bid-logo" href="index.html">
+        <svg width="42" height="48" viewBox="0 0 90 105" fill="none" xmlns="http://www.w3.org/2000/svg">
+          <path d="M18 24H72V58C72 78 45 94 45 94C45 94 18 78 18 58V24Z" fill="#00237d" stroke="#ffd000" stroke-width="3"/>
+          <path d="M45 27L67 54L45 86L23 54L45 27Z" fill="#009c3b"/>
+          <path d="M45 33L61 54L45 79L29 54L45 33Z" fill="#ffd000"/>
+          <rect x="25" y="47" width="40" height="14" rx="2" fill="#ffffff"/>
+          <text x="45" y="57.5" text-anchor="middle" fill="#00237d" font-family="Inter, Arial, sans-serif" font-weight="800" font-size="11">FBFV</text>
+        </svg>
+        <span class="bid-logo-text">BID • ADMIN</span>
       </a>
-      <div class="nav-actions">
-        <a class="btn" href="index.html">Ver BID Público</a>
-        <button id="logoutBtn" class="btn btn-danger" type="button">Sair</button>
+
+      <div style="display:flex;align-items:center;gap:10px;">
+        <a class="header-admin-link" href="index.html">Voltar ao BID Público</a>
+        <button id="logoutBtn" class="btn-cbf-danger" type="button">Sair</button>
       </div>
     </div>
   </header>
 
-  <main class="container">
-    <section class="hero">
-      <h1>Gestão do BID</h1>
-      <p>Área restrita para cadastro de clubes, atletas e publicação de movimentações no banco Supabase.</p>
-      <p id="adminFeedback" class="notice hidden"></p>
-    </section>
+  <main class="admin-container">
+    <div class="admin-banner">
+      <h1>Gestão Oficial do BID — FBFV</h1>
+      <p>Cadastre clubes com escudo, atletas com foto e publique contratos e liberações no Boletim Informativo Diário.</p>
+      <div id="adminFeedback" class="notice-bar hidden"></div>
+    </div>
 
-    <section id="loginPanel" class="card" style="max-width:440px;margin:0 auto 28px;">
-      <h2>Entrar como Administrador</h2>
+    <section id="loginPanel" class="admin-card" style="max-width:440px;margin:0 auto;">
+      <h2>Acesso Restrito — Administrador</h2>
       <form id="loginForm">
         <div class="form-group">
-          <label for="loginEmail">E-mail</label>
-          <input id="loginEmail" type="email" required placeholder="admin@fbfv.org" />
+          <label for="loginEmail">E-mail institucional</label>
+          <input id="loginEmail" class="form-control" type="email" required placeholder="admin@fbfv.org" />
         </div>
         <div class="form-group">
           <label for="loginPassword">Senha</label>
-          <input id="loginPassword" type="password" required placeholder="••••••••" />
+          <input id="loginPassword" class="form-control" type="password" required placeholder="••••••••" />
         </div>
-        <button class="btn btn-primary" type="submit" style="width:100%;">Entrar</button>
+        <button class="btn-cbf-primary" type="submit" style="width:100%;">Entrar no Painel</button>
       </form>
     </section>
 
     <section id="adminDashboard" class="hidden">
-      <p style="margin-bottom:14px;color:var(--muted);">Logado como: <strong id="adminUserEmail">-</strong></p>
+      <p style="margin-bottom:14px;font-size:0.88rem;color:var(--text-muted);">
+        Sessão ativa: <strong id="adminUserEmail" style="color:var(--cbf-navy);">-</strong>
+      </p>
 
       <div class="admin-grid">
-        <div class="card">
+        <div class="admin-card">
           <h2>1. Cadastrar Clube</h2>
           <form id="clubForm">
             <div class="form-group">
-              <label for="clubName">Nome do Clube</label>
-              <input id="clubName" type="text" required placeholder="Ex: Corinthians Virtual" />
+              <label for="clubName">Nome Oficial do Clube</label>
+              <input id="clubName" class="form-control" type="text" required placeholder="Ex: Sport Club Corinthians Virtual - SP" />
             </div>
             <div class="form-group">
-              <label for="clubShort">Sigla (3 letras)</label>
-              <input id="clubShort" type="text" maxlength="4" required placeholder="COR" />
+              <label for="clubShort">Sigla (3 a 4 letras)</label>
+              <input id="clubShort" class="form-control" type="text" maxlength="4" required placeholder="COR" />
             </div>
             <div class="form-group">
-              <label for="clubCity">Cidade / UF</label>
-              <input id="clubCity" type="text" placeholder="São Paulo - SP" />
+              <label for="clubUf">UF (Estado)</label>
+              <input id="clubUf" class="form-control" type="text" maxlength="2" required placeholder="SP" />
             </div>
-            <button class="btn btn-primary" type="submit">Salvar Clube</button>
+            <div class="form-group">
+              <label for="clubLogoUrl">URL do Escudo (PNG/JPG)</label>
+              <input id="clubLogoUrl" class="form-control" type="url" placeholder="https://.../escudo.png" />
+            </div>
+            <button class="btn-cbf-primary" type="submit">Salvar Clube</button>
           </form>
         </div>
 
-        <div class="card">
+        <div class="admin-card">
           <h2>2. Cadastrar Atleta</h2>
           <form id="playerForm">
             <div class="form-group">
               <label for="playerName">Nome Completo</label>
-              <input id="playerName" type="text" required placeholder="Nome do jogador" />
+              <input id="playerName" class="form-control" type="text" required placeholder="Ex: Andre Luiz Turci dos Santos" />
+            </div>
+            <div class="form-group">
+              <label for="playerNickname">Nome no Crachá (Exibido em destaque)</label>
+              <input id="playerNickname" class="form-control" type="text" placeholder="Ex: ANDRÉ LUIZ" />
             </div>
             <div class="form-group">
               <label for="playerPosition">Posição</label>
-              <select id="playerPosition" required>
+              <select id="playerPosition" class="form-control" required>
                 <option value="GOL">GOL</option>
                 <option value="ZAG">ZAG</option>
                 <option value="LAT">LAT</option>
@@ -84,36 +101,49 @@
               </select>
             </div>
             <div class="form-group">
-              <label for="playerClubSelect">Clube Atual</label>
-              <select id="playerClubSelect"></select>
+              <label for="playerBirthDate">Data de Nascimento</label>
+              <input id="playerBirthDate" class="form-control" type="date" />
             </div>
-            <button class="btn btn-primary" type="submit">Salvar Atleta</button>
+            <div class="form-group">
+              <label for="playerPhotoUrl">URL da Foto 3x4 do Atleta</label>
+              <input id="playerPhotoUrl" class="form-control" type="url" placeholder="https://.../foto.jpg" />
+            </div>
+            <div class="form-group">
+              <label for="playerClubSelect">Clube Atual</label>
+              <select id="playerClubSelect" class="form-control"></select>
+            </div>
+            <button class="btn-cbf-primary" type="submit">Salvar Atleta</button>
           </form>
         </div>
       </div>
 
-      <div class="card">
-        <h2>3. Publicar Movimentação no BID</h2>
-        <form id="transferForm" class="admin-grid" style="margin-top:8px;">
+      <div class="admin-card">
+        <h2>3. Publicar Registro no BID</h2>
+        <form id="transferForm" class="admin-grid" style="margin-bottom:0;">
           <div class="form-group">
-            <label for="protocolCode">Código de Protocolo</label>
-            <input id="protocolCode" type="text" required placeholder="FBFV-2026-0015" />
+            <label for="protocolCode">Nº de Contrato</label>
+            <input id="protocolCode" class="form-control" type="text" required placeholder="Ex: 2947500SP" />
+          </div>
+          <div class="form-group">
+            <label for="bidRegistration">Inscrição (BID)</label>
+            <input id="bidRegistration" class="form-control" type="text" placeholder="Ex: 870705" />
           </div>
           <div class="form-group">
             <label for="transferPlayerSelect">Atleta</label>
-            <select id="transferPlayerSelect" required></select>
+            <select id="transferPlayerSelect" class="form-control" required></select>
           </div>
           <div class="form-group">
             <label for="fromClubSelect">Clube de Origem</label>
-            <select id="fromClubSelect"></select>
+            <select id="fromClubSelect" class="form-control"></select>
           </div>
           <div class="form-group">
-            <label for="toClubSelect">Clube de Destino</label>
-            <select id="toClubSelect"></select>
+            <label for="toClubSelect">Clube de Destino / Atual</label>
+            <select id="toClubSelect" class="form-control"></select>
           </div>
           <div class="form-group">
-            <label for="movementType">Tipo de Movimentação</label>
-            <select id="movementType">
+            <label for="movementType">Tipo (Exibido no crachá)</label>
+            <select id="movementType" class="form-control">
+              <option value="LIBERAR">LIBERAR</option>
               <option value="TRANSFERENCIA">TRANSFERENCIA</option>
               <option value="EMPRESTIMO">EMPRESTIMO</option>
               <option value="RENOVACAO">RENOVACAO</option>
@@ -121,28 +151,28 @@
             </select>
           </div>
           <div class="form-group">
-            <label for="feeLabel">Condição / Valor</label>
-            <input id="feeLabel" type="text" placeholder="Livre / Sem custo" />
+            <label for="startDate">Data Início (Opcional)</label>
+            <input id="startDate" class="form-control" type="date" />
+          </div>
+          <div class="form-group">
+            <label for="feeLabel">Observação / Condição</label>
+            <input id="feeLabel" class="form-control" type="text" placeholder="Contrato Profissional / Livre" />
           </div>
           <div class="form-group">
             <label for="transferStatus">Status</label>
-            <select id="transferStatus">
+            <select id="transferStatus" class="form-control">
               <option value="PUBLICADO">PUBLICADO</option>
               <option value="PENDENTE">PENDENTE</option>
               <option value="CANCELADO">CANCELADO</option>
             </select>
           </div>
           <div class="form-group" style="display:flex;align-items:flex-end;">
-            <button class="btn btn-primary" type="submit" style="width:100%;">Publicar no BID</button>
+            <button class="btn-cbf-primary" type="submit" style="width:100%;">Publicar no BID</button>
           </div>
         </form>
       </div>
     </section>
   </main>
-
-  <footer class="footer">
-    <div class="container">BID FBFV — Área Administrativa</div>
-  </footer>
 
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
   <script src="js/config.js"></script>
